@@ -75,21 +75,6 @@
    [another-component]
    [navigation]])
 
-(def myroutes
-  [["/"
-    {:name :index
-     :view home-page}]
-
-   ["/about"
-    {:name :about
-     :view about-page}]
-
-   ["/item/:id"
-    {:name :item
-     :view item-page
-     :parameters {:path {:id int?}
-                  :query {(ds/opt :foo) keyword?}}}]])
-
 (defn my-expand [registry]
   (fn [data opts]
     (if (keyword? data)
