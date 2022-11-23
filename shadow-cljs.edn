@@ -1,0 +1,17 @@
+;; shadow-cljs configuration
+{:source-paths
+ ["src"]
+
+ :dependencies
+ [[reagent "1.1.1"]
+  [metosin/spec-tools "0.10.5"]
+  [metosin/reitit "0.5.18"]
+  [fipp "0.6.26"]]
+
+ :builds
+ {:app {:target :browser
+        :output-dir "resources/public/js"
+        :asset-path "/js"
+        :modules {:app {:init-fn foobar.frontend.app/init}}
+        :devtools {:repl-init-ns foobar.frontend.app
+                   :repl-pprint true}}}}
