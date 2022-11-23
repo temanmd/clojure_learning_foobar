@@ -15,3 +15,4 @@ pom.xml.asc
 /node_modules
 **/.DS_Store
 /.shadow-cljs
+/resources/public/js
