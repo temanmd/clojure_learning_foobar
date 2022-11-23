@@ -14,32 +14,40 @@
    :headers {"Content-Type" "text/html"}
    :body "Hello, World! Its API."})
 
-(defn my-expand [registry]
-  (fn [data opts]
-    (if (keyword? data)
-      (some-> data
-              registry
-              (ring-core/expand opts)
-              (assoc :name data))
-      (ring-core/expand data opts))))
+(defn my-expand [data opts]
+  (if (keyword? data)
+    (case data
+      :api {:handler api-handler}
+      {:handler frontend-handler})
+    (ring-core/expand data opts)))
 
 (def router
   (ring/ring-handler
    (ring/router
      routes/routes
-     {:expand (my-expand
-                {:api api-handler
-                 :index frontend-handler
-                 :items frontend-handler
-                 :item frontend-handler
-                 :about frontend-handler})})
+     {:expand my-expand})
    (ring/routes
     (ring/create-resource-handler {:path "/" :root "/public"})
     (ring/create-default-handler
       {:not-found (constantly {:status 404 :body "Not found"})}))))
 
+
+
+
 (comment
+  (defn example [data opts]
+    (let [registry {:kikka {:get api-handler
+                             :post frontend-handler}
+                     :bar frontend-handler}]
+      (println data)
+      (some-> data
+              registry
+              (ring-core/expand opts)
+              (assoc :name data))))
   (router {:request-method :get, :uri "/api"})
+  (router {:request-method :get, :uri "/about"})
+  (my-expand :index {})
   router
-  routes/routes)
+  routes/routes
+  (example :bar {}))
 
