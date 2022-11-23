@@ -24,21 +24,18 @@
 (def router
   (ring/ring-handler
    (ring/router
-     routes/routes
-     {:expand my-expand})
+    routes/routes
+    {:expand my-expand})
    (ring/routes
     (ring/create-resource-handler {:path "/" :root "/public"})
     (ring/create-default-handler
-      {:not-found (constantly {:status 404 :body "Not found"})}))))
-
-
-
+     {:not-found (constantly {:status 404 :body "Not found"})}))))
 
 (comment
   (defn example [data opts]
     (let [registry {:kikka {:get api-handler
-                             :post frontend-handler}
-                     :bar frontend-handler}]
+                            :post frontend-handler}
+                    :bar frontend-handler}]
       (println data)
       (some-> data
               registry

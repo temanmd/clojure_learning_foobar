@@ -86,14 +86,14 @@
 
 (defn init-routes []
   (rfe/start!
-    (rf/router routes/routes {:data {:coercion rcs/coercion}
-                              :expand (my-expand
-                                        {:index {:view home-page}
-                                         :about {:view about-page}
-                                         :item {:view item-page}})})
-    (fn [m] (reset! match m))
+   (rf/router routes/routes {:data {:coercion rcs/coercion}
+                             :expand (my-expand
+                                      {:index {:view home-page}
+                                       :about {:view about-page}
+                                       :item {:view item-page}})})
+   (fn [m] (reset! match m))
     ;; set to false to enable HistoryAPI
-    {:use-fragment false}))
+   {:use-fragment false}))
 
 (defn mount-root []
   (.render root (r/as-element [component])))
