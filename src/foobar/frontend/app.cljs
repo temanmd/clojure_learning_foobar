@@ -1,6 +1,7 @@
 (ns foobar.frontend.app
   (:require [reagent.core :as r]
             [reagent.dom :as rdom]
+            [re-frame.core :as re-frame]
             ["react-dom/client" :refer [createRoot]]
             [spec-tools.data-spec :as ds]
             [reitit.frontend :as rf]
@@ -8,10 +9,65 @@
             [reitit.coercion.spec :as rcs]
             [reitit.core :as ring-core]
             [fipp.edn :as fedn]
+            [cljs.pprint :refer [pprint]]
             [foobar.shared.routes :as routes]))
 
 (defonce root (createRoot (.getElementById js/document "app")))
 (defonce match (r/atom nil))
+
+
+(defn dispatch-timer-event []
+  (let [now (js/Date.)]
+    (re-frame/dispatch [:timer now])))
+
+(defonce do-timer (js/setInterval dispatch-timer-event 1000))
+
+(defn register-events []
+  (re-frame/reg-event-db
+    :initialize
+    (fn [__]
+      {:time (js/Date.)
+       :time-color "orange"}))
+  (re-frame/reg-event-db
+    :timer
+    (fn [db [_ new-time]]
+      (assoc db :time new-time)))
+  (re-frame/reg-event-db
+    :time-color-change
+    (fn [db [_ new-color-value]]
+      (assoc db :time-color new-color-value))))
+
+(defn register-subscriptions []
+  (re-frame/reg-sub
+    :time
+    (fn [db _]
+      (:time db)))
+  (re-frame/reg-sub
+    :time-color
+    (fn [db _]
+      (:time-color db))))
+
+(register-events)
+(register-subscriptions)
+
+(defn clock []
+  (let [color @(re-frame/subscribe [:time-color])
+        time (-> @(re-frame/subscribe [:time])
+                 .toTimeString
+                 (clojure.string/split " ")
+                 first)]
+    [:div.example-clock {:style {:color color}} time]))
+
+(defn color-input []
+  (let [gettext (fn [e] (-> e .-target .-value))
+        emit (fn [e] (re-frame/dispatch [:time-color-change (gettext e)]))
+        color-value @(re-frame/subscribe [:time-color])]
+    [:div.color-input
+     "Display color: "
+     [:input {:type "text"
+              :style {:border "1px solid #CCC"}
+              :value color-value
+              :on-change emit}]]))
 
 (defn item-page [match]
   (let [{:keys [path query]} (:parameters match)
@@ -35,6 +91,10 @@
      :on-click #(rfe/replace-state :item {:item-id 4})}
     "Replace State Item 4"]])
 
+(defn alert-button []
+  [:div.garbage-bin
+    :on-click #(re-frame/dispatch [:alert-me])])
+
 (defn about-page []
   [:div
    [:h2 "About frontend"]
@@ -42,6 +102,10 @@
     [:li [:a {:href "http://google.com"} "external link"]]
     [:li [:a {:href (rfe/href :foobar)} "Missing route"]]
     [:li [:a {:href (rfe/href :item)} "Missing route params"]]]
+
+   [:div
+    [clock]
+    [color-input]]
 
    [:div
     {:content-editable true
@@ -98,6 +162,11 @@
 (defn mount-root []
   (.render root (r/as-element [component])))
 
+(defn alert-me-handler
+  [data]
+  (js/alert "Alert message"))
+
 (defn init []
   (init-routes)
+  (re-frame/dispatch-sync [:initialize])
   (mount-root))
