@@ -6,4 +6,5 @@
     ["" :items]
     ["/:item-id" :item]]
    ["/api" :api]
-   ["/about" :about]])
+   ["/about" :about]
+   ["/todo" :todo]])
